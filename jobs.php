@@ -71,41 +71,561 @@ $locations = $locations_stmt->fetchAll(PDO::FETCH_COLUMN);
     <title>Semua Lowongan - HireWay</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        .job-card {
-            transition: transform 0.2s, box-shadow 0.2s;
-            border: none;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        :root {
+            --primary-color: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary-color: #8b5cf6;
+            --accent-color: #06b6d4;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
         }
-        .job-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .job-type-badge {
-            font-size: 0.8rem;
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
         }
-        .salary-text {
-            color: #28a745;
-            font-weight: bold;
+
+        /* Floating Animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
         }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Navbar dengan Glassmorphism */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1rem 0;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
         .navbar-brand {
-            font-weight: bold;
+            font-weight: 700;
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .navbar-nav .nav-link {
+            color: var(--text-secondary) !important;
+            font-weight: 500;
+            margin: 0 0.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: var(--primary-color) !important;
+            transform: translateY(-2px);
+        }
+
+        .navbar-nav .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .navbar-nav .nav-link:hover::after {
+            width: 80%;
+        }
+
+        .navbar-nav .nav-link.active {
+            color: var(--primary-color) !important;
+            font-weight: 600;
+        }
+
+        .navbar-nav .nav-link.active::after {
+            width: 80%;
+        }
+
+        /* Buttons dengan Gradient dan Animasi */
+        .btn-modern {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px 0 rgba(99, 102, 241, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-modern::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-modern:hover::before {
+            left: 100%;
+        }
+
+        .btn-modern:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px 0 rgba(99, 102, 241, 0.4);
+            color: #FFFF00;
+        }
+
+        .btn-outline-modern {
+            border: 2px solid transparent;
+            background: linear-gradient(white, white) padding-box, 
+                       linear-gradient(135deg, var(--primary-color), var(--secondary-color)) border-box;
+            color: var(--primary-color);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-outline-modern:hover {
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px 0 rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-outline-modern::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            transition: width 0.3s ease;
+            z-index: -1;
+        }
+
+        .btn-outline-modern:hover::before {
+            width: 100%;
+        }
+
+        /* Page Header */
+        .page-header {
+            background: linear-gradient(135deg, 
+                rgba(102, 126, 234, 0.1) 0%, 
+                rgba(118, 75, 162, 0.1) 100%);
+            padding: 4rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23667eea" fill-opacity="0.1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grain)"/></svg>');
+            animation: float 20s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        .page-header-content {
+            position: relative;
+            z-index: 1;
+            animation: slideInUp 1s ease-out;
+        }
+
+        .page-header h1 {
+            font-weight: 800;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--bg-primary), #FFFF00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        .page-header .lead {
+            color: #ffffff;
+            font-size: 1.2rem;
+            font-weight: 400;
+            margin-bottom: 0;
+        }
+
+        /* Search & Filter Section */
+        .search-filter-section {
+            background: var(--bg-primary);
+            margin-top: -30px;
+            position: relative;
+            z-index: 2;
+            border-radius: 2rem 2rem 0 0;
+            padding: 3rem 0 2rem 0;
+            box-shadow: 0 -10px 40px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .filter-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.15);
+        }
+
+        .form-control, .form-select {
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 0.875rem 1rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            transform: translateY(-2px);
+            background: white;
+        }
+
+        /* Jobs Container */
+        .jobs-container {
+            background: var(--bg-primary);
+            padding: 2rem 0 4rem 0;
+        }
+
+        /* Job Cards dengan Hover Effects */
+        .job-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+            animation: slideInUp 0.6s ease-out;
+            height: 100%;
+        }
+
+        .job-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .job-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .job-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .job-type-badge {
+            background: linear-gradient(135deg, var(--accent-color), var(--success-color));
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 10px 0 rgba(6, 182, 212, 0.3);
+        }
+
+        .job-card h5 {
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 1.5rem 0 0.5rem 0;
+            font-size: 1.4rem;
+        }
+
+        .job-card h6 {
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .job-meta {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .job-meta i {
+            width: 20px;
+            margin-right: 0.75rem;
+        }
+
+        .salary-text {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+
+        .job-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 1.5rem 0;
+        }
+
+        /* Action Buttons */
+        .btn-detail {
+            background: rgba(99, 102, 241, 0.1);
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-detail:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px 0 rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-apply {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px 0 rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-apply:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px 0 rgba(16, 185, 129, 0.4);
+        }
+
+        /* Pagination */
+        .pagination {
+            --bs-pagination-border-radius: 50px;
+        }
+
+        .page-link {
+            border: 2px solid var(--border-color);
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding: 0.75rem 1.25rem;
+            margin: 0 0.25rem;
+            border-radius: 50px !important;
+            transition: all 0.3s ease;
+        }
+
+        .page-link:hover {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px 0 rgba(99, 102, 241, 0.3);
+        }
+
+        .page-item.active .page-link {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 15px 0 rgba(99, 102, 241, 0.3);
+        }
+
+        .page-item.disabled .page-link {
+            color: var(--text-secondary);
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 6rem 2rem;
+            animation: slideInUp 0.8s ease-out;
+        }
+
+        .empty-state i {
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            animation: pulse 2s infinite;
+        }
+
+        .empty-state h4 {
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+
+        .empty-state p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        /* Modal Improvements */
+        .modal-content {
+            border: none;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 40px 0 rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 2rem;
+        }
+
+        .modal-title {
+            font-weight: 700;
             font-size: 1.5rem;
         }
-        .search-section {
-            background-color: #f8f9fa;
-            padding: 30px 0;
+
+        .modal-body {
+            padding: 2rem;
         }
-        .page-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 60px 0;
+
+        /* Footer */
+        footer {
+            background: linear-gradient(135deg, var(--text-primary), #0f172a);
+            color: rgba(255, 255, 255, 0.8);
+            padding: 3rem 0;
+            font-size: 0.95rem;
+        }
+
+        /* Statistics Card */
+        .stats-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.05);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .stats-number {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stats-label {
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 2rem;
+            }
+            
+            .page-header .lead {
+                font-size: 1rem;
+            }
+            
+            .job-card {
+                padding: 1.5rem;
+            }
+            
+            .filter-card {
+                padding: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg">
         <div class="container">
             <a class="navbar-brand" href="index.php">
                 <i class="fas fa-briefcase me-2"></i>HireWay
@@ -114,7 +634,7 @@ $locations = $locations_stmt->fetchAll(PDO::FETCH_COLUMN);
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
                         <a class="nav-link" href="index.php">Beranda</a>
                     </li>
@@ -123,30 +643,28 @@ $locations = $locations_stmt->fetchAll(PDO::FETCH_COLUMN);
                     </li>
                     <?php if (is_logged_in()): ?>
                         <li class="nav-item">
-                            <a class="nav-link">Halo, <?= htmlspecialchars(get_user_name()) ?>!</a>
+                            <span class="nav-link">Halo, <?= htmlspecialchars(get_user_name()) ?>! 👋</span>
                         </li>
                         <?php if (is_admin()): ?>
                             <li class="nav-item">
                                 <a class="nav-link" href="admin.php">
-                                    <i class="fas fa-cog me-1"></i>Admin
+                                    <i class="fas fa-cog me-2"></i>Admin
                                 </a>
                             </li>
                         <?php endif; ?>
                         <li class="nav-item">
                             <a class="nav-link" href="src/auth/logout.php">
-                                <i class="fas fa-sign-out-alt me-1"></i>Logout
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout
                             </a>
                         </li>
                     <?php else: ?>
                         <li class="nav-item">
-                            <a class="nav-link" href="src/auth/login.php">
-                                <i class="fas fa-sign-in-alt me-1"></i>Login
-                            </a>
+                            <a class="nav-link" href="src/auth/login.php">Login</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="src/auth/register.php">
-                                <i class="fas fa-user-plus me-1"></i>Register
-                            </a>
+                            <button class="btn btn-modern ms-3" onclick="location.href='src/auth/register.php'">
+                                Register
+                            </button>
                         </li>
                     <?php endif; ?>
                 </ul>
@@ -157,105 +675,114 @@ $locations = $locations_stmt->fetchAll(PDO::FETCH_COLUMN);
     <!-- Page Header -->
     <section class="page-header">
         <div class="container text-center">
-            <h1 class="display-5 mb-3">Semua Lowongan Kerja</h1>
-            <p class="lead">Temukan pekerjaan yang sesuai dengan keahlian Anda</p>
+            <div class="page-header-content">
+                <h1>Semua Lowongan Kerja ✨</h1>
+                <p class="lead">Temukan pekerjaan impian Anda dari ribuan lowongan terbaik</p>
+            </div>
         </div>
     </section>
 
     <!-- Search & Filter Section -->
-    <section class="search-section">
+    <section class="search-filter-section">
         <div class="container">
-            <form method="GET" class="row g-3">
-                <div class="col-md-4">
-                    <input type="text" name="search" class="form-control" placeholder="Kata kunci..." 
-                           value="<?= htmlspecialchars($search) ?>">
-                </div>
-                <div class="col-md-3">
-                    <select name="location" class="form-select">
-                        <option value="">Semua Lokasi</option>
-                        <?php foreach ($locations as $location): ?>
-                            <option value="<?= htmlspecialchars($location) ?>" 
-                                    <?= $location_filter == $location ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($location) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <select name="job_type" class="form-select">
-                        <option value="">Semua Tipe</option>
-                        <option value="Full-time" <?= $job_type_filter == 'Full-time' ? 'selected' : '' ?>>Full-time</option>
-                        <option value="Part-time" <?= $job_type_filter == 'Part-time' ? 'selected' : '' ?>>Part-time</option>
-                        <option value="Contract" <?= $job_type_filter == 'Contract' ? 'selected' : '' ?>>Contract</option>
-                        <option value="Internship" <?= $job_type_filter == 'Internship' ? 'selected' : '' ?>>Internship</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">Filter</button>
-                </div>
-            </form>
+            <div class="filter-card">
+                <form method="GET" class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">🔍 Kata Kunci</label>
+                        <input type="text" name="search" class="form-control" placeholder="Cari pekerjaan..." 
+                               value="<?= htmlspecialchars($search) ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">📍 Lokasi</label>
+                        <select name="location" class="form-select">
+                            <option value="">Semua Lokasi</option>
+                            <?php foreach ($locations as $location): ?>
+                                <option value="<?= htmlspecialchars($location) ?>" 
+                                        <?= $location_filter == $location ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($location) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">💼 Tipe Pekerjaan</label>
+                        <select name="job_type" class="form-select">
+                            <option value="">Semua Tipe</option>
+                            <option value="Full-time" <?= $job_type_filter == 'Full-time' ? 'selected' : '' ?>>Full-time</option>
+                            <option value="Part-time" <?= $job_type_filter == 'Part-time' ? 'selected' : '' ?>>Part-time</option>
+                            <option value="Contract" <?= $job_type_filter == 'Contract' ? 'selected' : '' ?>>Contract</option>
+                            <option value="Internship" <?= $job_type_filter == 'Internship' ? 'selected' : '' ?>>Internship</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-modern w-100">
+                            <i class="fas fa-search me-2"></i>Cari Lowongan
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </section>
 
     <!-- Jobs Section -->
-    <section class="py-5">
+    <section class="jobs-container">
         <div class="container">
-            <div class="row mb-4">
-                <div class="col">
-                    <h3>Ditemukan <?= $total_jobs ?> lowongan kerja</h3>
-                    <p class="text-muted">Halaman <?= $current_page ?> dari <?= $total_pages ?></p>
-                </div>
+            <!-- Statistics -->
+            <div class="stats-card">
+                <div class="stats-number"><?= $total_jobs ?></div>
+                <div class="stats-label">Lowongan Ditemukan</div>
+                <p class="text-muted mb-0">Halaman <?= $current_page ?> dari <?= $total_pages ?></p>
             </div>
 
             <?php if (empty($jobs)): ?>
-                <div class="text-center py-5">
-                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                    <h4>Tidak ada lowongan ditemukan</h4>
-                    <p class="text-muted">Coba ubah kata kunci pencarian atau filter Anda</p>
-                    <a href="jobs.php" class="btn btn-primary">Reset Filter</a>
+                <div class="empty-state">
+                    <i class="fas fa-search fa-4x"></i>
+                    <h4>Tidak Ada Lowongan Ditemukan 😔</h4>
+                    <p>Coba ubah kata kunci pencarian atau filter Anda untuk menemukan lowongan yang sesuai</p>
+                    <a href="jobs.php" class="btn btn-modern mt-3">
+                        <i class="fas fa-refresh me-2"></i>Reset Filter
+                    </a>
                 </div>
             <?php else: ?>
                 <div class="row">
-                    <?php foreach ($jobs as $job): ?>
-                        <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card job-card h-100">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <span class="badge bg-primary job-type-badge"><?= htmlspecialchars($job['job_type']) ?></span>
-                                        <small class="text-muted"><?= format_date($job['created_at']) ?></small>
-                                    </div>
-                                    
-                                    <h5 class="card-title"><?= htmlspecialchars($job['title']) ?></h5>
-                                    <h6 class="card-subtitle mb-2 text-primary"><?= htmlspecialchars($job['company']) ?></h6>
-                                    
-                                    <div class="mb-2">
-                                        <i class="fas fa-map-marker-alt text-muted me-1"></i>
-                                        <small><?= htmlspecialchars($job['location']) ?></small>
-                                    </div>
-                                    
-                                    <?php if (!empty($job['salary'])): ?>
-                                        <div class="mb-3">
-                                            <i class="fas fa-money-bill-wave text-muted me-1"></i>
-                                            <span class="salary-text"><?= htmlspecialchars($job['salary']) ?></span>
-                                        </div>
-                                    <?php endif; ?>
-                                    
-                                    <p class="card-text"><?= substr(htmlspecialchars($job['description']), 0, 100) ?>...</p>
+                    <?php foreach ($jobs as $index => $job): ?>
+                        <div class="col-lg-4 col-md-6 mb-4" style="animation-delay: <?= $index * 0.1 ?>s;">
+                            <div class="job-card">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <span class="job-type-badge"><?= htmlspecialchars($job['job_type']) ?></span>
+                                    <small class="text-muted">📅 <?= format_date($job['created_at']) ?></small>
                                 </div>
-                                <div class="card-footer bg-transparent">
-                                    <button class="btn btn-outline-primary btn-sm" 
-                                            onclick="showJobDetail(<?= $job['id'] ?>)">
-                                        Lihat Detail
+                                
+                                <h5><?= htmlspecialchars($job['title']) ?></h5>
+                                <h6><?= htmlspecialchars($job['company']) ?></h6>
+                                
+                                <div class="job-meta">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span><?= htmlspecialchars($job['location']) ?></span>
+                                </div>
+                                
+                                <?php if (!empty($job['salary'])): ?>
+                                    <div class="job-meta">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                        <span class="salary-text"><?= htmlspecialchars($job['salary']) ?></span>
+                                    </div>
+                                <?php endif; ?>
+                                
+                                <p class="job-description"><?= substr(htmlspecialchars($job['description']), 0, 120) ?>...</p>
+                                
+                                <div class="d-flex justify-content-between align-items-center mt-4">
+                                    <button class="btn-detail" onclick="showJobDetail(<?= $job['id'] ?>)">
+                                        <i class="fas fa-eye me-2"></i>Detail
                                     </button>
                                     <?php if (is_logged_in()): ?>
                                         <a href="mailto:<?= htmlspecialchars($job['contact_email']) ?>" 
-                                           class="btn btn-primary btn-sm float-end">
-                                            Lamar Sekarang
+                                           class="btn-apply text-decoration-none">
+                                            <i class="fas fa-paper-plane me-2"></i>Lamar
                                         </a>
                                     <?php else: ?>
                                         <a href="src/auth/login.php" 
-                                           class="btn btn-primary btn-sm float-end">
-                                            Login untuk Melamar
+                                           class="btn-apply text-decoration-none">
+                                            <i class="fas fa-sign-in-alt me-2"></i>Login
                                         </a>
                                     <?php endif; ?>
                                 </div>
@@ -271,7 +798,7 @@ $locations = $locations_stmt->fetchAll(PDO::FETCH_COLUMN);
                             <?php if ($current_page > 1): ?>
                                 <li class="page-item">
                                     <a class="page-link" href="?<?= http_build_query(array_merge($_GET, ['page' => $current_page - 1])) ?>">
-                                        <i class="fas fa-chevron-left"></i> Sebelumnya
+                                        <i class="fas fa-chevron-left me-2"></i>Sebelumnya
                                     </a>
                                 </li>
                             <?php endif; ?>
@@ -307,7 +834,7 @@ $locations = $locations_stmt->fetchAll(PDO::FETCH_COLUMN);
                             <?php if ($current_page < $total_pages): ?>
                                 <li class="page-item">
                                     <a class="page-link" href="?<?= http_build_query(array_merge($_GET, ['page' => $current_page + 1])) ?>">
-                                        Selanjutnya <i class="fas fa-chevron-right"></i>
+                                        Selanjutnya<i class="fas fa-chevron-right ms-2"></i>
                                     </a>
                                 </li>
                             <?php endif; ?>
@@ -319,9 +846,9 @@ $locations = $locations_stmt->fetchAll(PDO::FETCH_COLUMN);
     </section>
 
     <!-- Footer -->
-    <footer class="bg-dark text-light py-4">
+    <footer>
         <div class="container text-center">
-            <p>&copy; 2025 HireWay. Semua hak dilindungi.</p>
+            <p>&copy; 2025 HireWay. Dibuat dengan ❤️ untuk masa depan karir yang lebih baik.</p>
         </div>
     </footer>
 
@@ -342,23 +869,75 @@ $locations = $locations_stmt->fetchAll(PDO::FETCH_COLUMN);
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Job Detail Function dengan Loading Animation
         function showJobDetail(jobId) {
             <?php if (is_logged_in()): ?>
+                // Show loading SweetAlert
+                Swal.fire({
+                    title: 'Memuat Detail...',
+                    html: 'Mohon tunggu sebentar <i class="fas fa-spinner fa-spin"></i>',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    background: '#ffffff',
+                    color: '#1e293b',
+                    customClass: {
+                        popup: 'animated fadeIn'
+                    }
+                });
+                
                 fetch(`job-detail.php?id=${jobId}`)
                     .then(response => response.text())
                     .then(data => {
+                        Swal.close();
                         document.getElementById('jobDetailContent').innerHTML = data;
                         new bootstrap.Modal(document.getElementById('jobDetailModal')).show();
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        alert('Gagal memuat detail lowongan');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal Memuat! 😞',
+                            text: 'Terjadi kesalahan saat memuat detail lowongan',
+                            confirmButtonText: 'OK',
+                            confirmButtonColor: '#ef4444'
+                        });
                     });
             <?php else: ?>
-                alert('Anda harus login untuk melihat detail lowongan');
-                window.location.href = 'src/auth/login.php';
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Login Diperlukan! 🔐',
+                    text: 'Anda harus login untuk melihat detail lowongan',
+                    confirmButtonText: 'Login Sekarang',
+                    cancelButtonText: 'Nanti',
+                    showCancelButton: true,
+                    confirmButtonColor: '#6366f1',
+                    cancelButtonColor: '#64748b'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = 'src/auth/login.php';
+                    }
+                });
             <?php endif; ?>
         }
+
+        // Add scroll animation
+        window.addEventListener('scroll', () => {
+            const cards = document.querySelectorAll('.job-card');
+            cards.forEach(card => {
+                const cardTop = card.getBoundingClientRect().top;
+                const cardVisible = 150;
+                
+                if(cardTop < window.innerHeight - cardVisible) {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }
+            });
+        });
+
+        // Auto close alerts after animation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Additional initialization if needed
+        });
     </script>
 </body>
 </html>
