@@ -1,13 +1,12 @@
 <?php
 require_once 'config.php';
 require_once 'src/includes/session_manager.php';
-require_once 'src/includes/csrf_helper.php'; // Include CSRF helper
+require_once 'src/includes/profile_helper.php'; // Tambahkan ini
+require_once 'src/includes/csrf_helper.php'; // Tambahkan ini
 
 // Start session
 start_session();
-
-// Generate CSRF token untuk form
-generate_csrf_token();
+generate_csrf_token(); // Tambahkan ini
 
 // Handle form submission untuk menambah job baru
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_job'])) {
@@ -666,11 +665,25 @@ $total_jobs = $total_jobs_stmt->fetchColumn();
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
                         <a class="nav-link" href="index.php">Beranda</a>
-                    </li>
-                    <li class="nav-item">
+                    </li>                    <li class="nav-item">
                         <a class="nav-link" href="jobs.php">Semua Lowongan</a>
                     </li>
                     <?php if (is_logged_in()): ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="profile.php">
+                                <i class="fas fa-user me-2"></i>Profil
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="applications.php">
+                                <i class="fas fa-file-alt me-2"></i>Lamaran
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="bookmarks.php">
+                                <i class="fas fa-heart me-2"></i>Favorit
+                            </a>
+                        </li>
                         <li class="nav-item">
                             <button class="btn btn-outline-modern me-3" data-bs-toggle="modal" data-bs-target="#addJobModal">
                                 <i class="fas fa-plus me-2"></i>Posting Lowongan

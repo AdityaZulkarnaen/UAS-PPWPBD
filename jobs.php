@@ -1,9 +1,12 @@
 <?php
 require_once 'config.php';
 require_once 'src/includes/session_manager.php';
+require_once 'src/includes/profile_helper.php'; // Tambahkan ini
+require_once 'src/includes/csrf_helper.php'; // Tambahkan ini
 
 // Start session
 start_session();
+generate_csrf_token(); // Tambahkan ini
 
 // Pagination settings
 $jobs_per_page = 12;
@@ -621,6 +624,42 @@ $locations = $locations_stmt->fetchAll(PDO::FETCH_COLUMN);
                 padding: 1.5rem;
             }
         }
+
+        .btn-bookmark {
+            background: rgba(239, 68, 68, 0.1);
+            border: 2px solid #ef4444;
+            color: #ef4444;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .btn-bookmark:hover {
+            background: #ef4444;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px 0 rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-bookmark.bookmarked {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-bookmark.bookmarked:hover {
+            background: rgba(239, 68, 68, 0.8);
+        }
+
+        .btn-bookmark.loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -643,15 +682,23 @@ $locations = $locations_stmt->fetchAll(PDO::FETCH_COLUMN);
                     </li>
                     <?php if (is_logged_in()): ?>
                         <li class="nav-item">
+                            <a class="nav-link" href="profile.php">
+                                <i class="fas fa-user me-2"></i>Profil
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="applications.php">
+                                <i class="fas fa-file-alt me-2"></i>Lamaran
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="bookmarks.php">
+                                <i class="fas fa-heart me-2"></i>Favorit
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <span class="nav-link">Halo, <?= htmlspecialchars(get_user_name()) ?>! 👋</span>
                         </li>
-                        <?php if (is_admin()): ?>
-                            <li class="nav-item">
-                                <a class="nav-link" href="admin.php">
-                                    <i class="fas fa-cog me-2"></i>Admin
-                                </a>
-                            </li>
-                        <?php endif; ?>
                         <li class="nav-item">
                             <a class="nav-link" href="src/auth/logout.php">
                                 <i class="fas fa-sign-out-alt me-2"></i>Logout
@@ -659,12 +706,14 @@ $locations = $locations_stmt->fetchAll(PDO::FETCH_COLUMN);
                         </li>
                     <?php else: ?>
                         <li class="nav-item">
-                            <a class="nav-link" href="src/auth/login.php">Login</a>
+                            <a class="nav-link" href="src/auth/login.php">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <button class="btn btn-modern ms-3" onclick="location.href='src/auth/register.php'">
-                                Register
-                            </button>
+                            <a class="nav-link" href="src/auth/register.php">
+                                <i class="fas fa-user-plus me-2"></i>Daftar
+                            </a>
                         </li>
                     <?php endif; ?>
                 </ul>
@@ -771,9 +820,28 @@ $locations = $locations_stmt->fetchAll(PDO::FETCH_COLUMN);
                                 <p class="job-description"><?= substr(htmlspecialchars($job['description']), 0, 120) ?>...</p>
                                 
                                 <div class="d-flex justify-content-between align-items-center mt-4">
-                                    <button class="btn-detail" onclick="showJobDetail(<?= $job['id'] ?>)">
-                                        <i class="fas fa-eye me-2"></i>Detail
-                                    </button>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn-detail" onclick="showJobDetail(<?= $job['id'] ?>)">
+                                            <i class="fas fa-eye me-2"></i>Detail
+                                        </button>
+                                        <?php if (is_logged_in()): ?>
+                                            <?php 
+                                            try {
+                                                $user_id = get_user_id();
+                                                $is_bookmarked = is_job_bookmarked($user_id, $job['id']);
+                                            } catch (Exception $e) {
+                                                $is_bookmarked = false;
+                                                error_log("Bookmark check error: " . $e->getMessage());
+                                            }
+                                            ?>
+                                            <button class="btn-bookmark <?= $is_bookmarked ? 'bookmarked' : '' ?>" 
+                                                    onclick="toggleBookmark(<?= $job['id'] ?>, this)"
+                                                    data-job-id="<?= $job['id'] ?>">
+                                                <i class="fas fa-heart me-2"></i>
+                                                <span class="bookmark-text"><?= $is_bookmarked ? 'Tersimpan' : 'Simpan' ?></span>
+                                            </button>
+                                        <?php endif; ?>
+                                    </div>
                                     <?php if (is_logged_in()): ?>
                                         <a href="mailto:<?= htmlspecialchars($job['contact_email']) ?>" 
                                            class="btn-apply text-decoration-none">
@@ -869,7 +937,81 @@ $locations = $locations_stmt->fetchAll(PDO::FETCH_COLUMN);
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Job Detail Function dengan Loading Animation
+        // Bookmark functionality
+        function toggleBookmark(jobId, button) {
+            // Show loading state
+            button.classList.add('loading');
+            const originalText = button.querySelector('.bookmark-text').textContent;
+            button.querySelector('.bookmark-text').textContent = 'Loading...';
+            
+            const formData = new FormData();
+            formData.append('job_id', jobId);
+            formData.append('csrf_token', '<?= get_csrf_token() ?>');
+            
+            fetch('bookmark_handler.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                if (data.success) {
+                    // Update button state
+                    if (data.bookmarked) {
+                        button.classList.add('bookmarked');
+                        button.querySelector('.bookmark-text').textContent = 'Tersimpan';
+                    } else {
+                        button.classList.remove('bookmarked');
+                        button.querySelector('.bookmark-text').textContent = 'Simpan';
+                    }
+                    
+                    // Show success message
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil! 🎉',
+                        text: data.message,
+                        timer: 2000,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end'
+                    });
+                } else {
+                    // Show error message
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal! 😞',
+                        text: data.message,
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#ef4444'
+                    });
+                    
+                    // Restore original text
+                    button.querySelector('.bookmark-text').textContent = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal! 😞',
+                    text: 'Terjadi kesalahan saat memproses bookmark',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#ef4444'
+                });
+                
+                // Restore original text
+                button.querySelector('.bookmark-text').textContent = originalText;
+            })
+            .finally(() => {
+                // Remove loading state
+                button.classList.remove('loading');
+            });
+        }
+
+        // Job Detail Function
         function showJobDetail(jobId) {
             <?php if (is_logged_in()): ?>
                 // Show loading SweetAlert
@@ -879,18 +1021,15 @@ $locations = $locations_stmt->fetchAll(PDO::FETCH_COLUMN);
                     allowOutsideClick: false,
                     showConfirmButton: false,
                     background: '#ffffff',
-                    color: '#1e293b',
-                    customClass: {
-                        popup: 'animated fadeIn'
-                    }
+                    color: '#1e293b'
                 });
                 
                 fetch(`job-detail.php?id=${jobId}`)
                     .then(response => response.text())
                     .then(data => {
                         Swal.close();
-                        document.getElementById('jobDetailContent').innerHTML = data;
-                        new bootstrap.Modal(document.getElementById('jobDetailModal')).show();
+                        // Handle job detail display
+                        console.log('Job detail loaded');
                     })
                     .catch(error => {
                         console.error('Error:', error);
@@ -932,11 +1071,6 @@ $locations = $locations_stmt->fetchAll(PDO::FETCH_COLUMN);
                     card.style.transform = 'translateY(0)';
                 }
             });
-        });
-
-        // Auto close alerts after animation
-        document.addEventListener('DOMContentLoaded', function() {
-            // Additional initialization if needed
         });
     </script>
 </body>

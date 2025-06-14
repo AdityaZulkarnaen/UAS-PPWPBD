@@ -1,12 +1,10 @@
 <?php
 /**
- * CSRF Helper Functions
- * File: src/includes/csrf_helper.php
+ * CSRF Protection Helper Functions
  */
 
 /**
  * Generate CSRF token
- * @return string
  */
 function generate_csrf_token() {
     if (!isset($_SESSION['csrf_token'])) {
@@ -16,19 +14,16 @@ function generate_csrf_token() {
 }
 
 /**
- * Get current CSRF token
- * @return string|null
+ * Get CSRF token
  */
 function get_csrf_token() {
-    return $_SESSION['csrf_token'] ?? null;
+    return $_SESSION['csrf_token'] ?? '';
 }
 
 /**
- * Verify CSRF token
- * @param string $token
- * @return bool
+ * Validate CSRF token
  */
-function verify_csrf_token($token) {
+function validate_csrf_token($token) {
     if (!isset($_SESSION['csrf_token']) || empty($token)) {
         return false;
     }
@@ -37,8 +32,15 @@ function verify_csrf_token($token) {
 }
 
 /**
- * Regenerate CSRF token (use after successful form submission)
- * @return string
+ * Validate CSRF (legacy function name)
+ */
+function validate_csrf() {
+    $token = $_POST['csrf_token'] ?? '';
+    return validate_csrf_token($token);
+}
+
+/**
+ * Regenerate CSRF token
  */
 function regenerate_csrf_token() {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -46,24 +48,24 @@ function regenerate_csrf_token() {
 }
 
 /**
- * Get CSRF token as hidden input field
- * @return string
+ * Generate CSRF token field for forms
  */
 function csrf_token_field() {
-    $token = generate_csrf_token();
+    $token = get_csrf_token();
+    if (empty($token)) {
+        $token = generate_csrf_token();
+    }
     return '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($token) . '">';
 }
 
 /**
- * Validate CSRF token from POST data
- * @return bool
+ * Generate CSRF meta tag for AJAX requests
  */
-function validate_csrf() {
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        return true; // Skip validation for non-POST requests
+function csrf_meta_tag() {
+    $token = get_csrf_token();
+    if (empty($token)) {
+        $token = generate_csrf_token();
     }
-    
-    $submitted_token = $_POST['csrf_token'] ?? '';
-    return verify_csrf_token($submitted_token);
+    return '<meta name="csrf-token" content="' . htmlspecialchars($token) . '">';
 }
 ?>
