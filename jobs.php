@@ -479,11 +479,19 @@ $locations = $locations_stmt->fetchAll(PDO::FETCH_COLUMN);
             font-weight: 600;
             transition: all 0.3s ease;
             box-shadow: 0 2px 10px 0 rgba(16, 185, 129, 0.3);
+            cursor: pointer;
         }
 
         .btn-apply:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px 0 rgba(16, 185, 129, 0.4);
+            color: white;
+        }
+
+        .btn-apply:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
 
         /* Pagination */
@@ -843,10 +851,10 @@ $locations = $locations_stmt->fetchAll(PDO::FETCH_COLUMN);
                                         <?php endif; ?>
                                     </div>
                                     <?php if (is_logged_in()): ?>
-                                        <a href="mailto:<?= htmlspecialchars($job['contact_email']) ?>" 
-                                           class="btn-apply text-decoration-none">
+                                        <button class="btn-apply" 
+                                                onclick="applyJob(<?= $job['id'] ?>, '<?= htmlspecialchars($job['title']) ?>', '<?= htmlspecialchars($job['company']) ?>')">
                                             <i class="fas fa-paper-plane me-2"></i>Lamar
-                                        </a>
+                                        </button>
                                     <?php else: ?>
                                         <a href="src/auth/login.php" 
                                            class="btn-apply text-decoration-none">
@@ -937,6 +945,74 @@ $locations = $locations_stmt->fetchAll(PDO::FETCH_COLUMN);
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Apply Job functionality
+        function applyJob(jobId, jobTitle, company) {
+            Swal.fire({
+                title: 'Konfirmasi Lamaran',
+                html: `Apakah Anda yakin ingin melamar pekerjaan:<br><strong>${jobTitle}</strong><br>di <strong>${company}</strong>?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Lamar Sekarang!',
+                cancelButtonText: 'Batal',
+                showLoaderOnConfirm: true,
+                preConfirm: () => {
+                    const formData = new FormData();
+                    formData.append('job_id', jobId);
+                    formData.append('csrf_token', '<?= get_csrf_token() ?>');
+                    
+                    return fetch('apply_handler.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (!data.success) {
+                            throw new Error(data.message);
+                        }
+                        return data;
+                    })
+                    .catch(error => {
+                        Swal.showValidationMessage(`Request failed: ${error.message}`);
+                    });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed && result.value) {
+                    const data = result.value;
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Lamaran Berhasil Dikirim! 🎉',
+                        html: `
+                            <div class="text-start">
+                                <p><strong>Posisi:</strong> ${data.job_title}</p>
+                                <p><strong>Perusahaan:</strong> ${data.company}</p>
+                                <p><strong>Status:</strong> <span class="badge bg-warning">Menunggu</span></p>
+                                <p><strong>Total Lamaran Anda:</strong> ${data.total_applications}</p>
+                                <hr>
+                                <p class="text-muted">Silahkan tunggu pesan dari bagian HR. Kami akan menghubungi Anda segera!</p>
+                            </div>
+                        `,
+                        confirmButtonText: 'Lihat Riwayat Lamaran',
+                        showCancelButton: true,
+                        cancelButtonText: 'OK',
+                        confirmButtonColor: '#6366f1',
+                        cancelButtonColor: '#10b981'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = 'applications.php';
+                        }
+                    });
+                }
+            });
+        }
+
         // Bookmark functionality
         function toggleBookmark(jobId, button) {
             // Show loading state
