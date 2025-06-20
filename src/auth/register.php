@@ -12,10 +12,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = clean_input($_POST['email']);
     $password = clean_input($_POST['password']);
     $confirm_password = clean_input($_POST['confirm_password']);
+    $role = clean_input($_POST['role']);
 
     // Validation
-    if (empty($username) || empty($email) || empty($password)) {
+    if (empty($username) || empty($email) || empty($password) || empty($role)) {
         $error_message = "Semua field harus diisi.";
+    } elseif (!in_array($role, ['jobseeker', 'employer'])) {
+        $error_message = "Role tidak valid.";
     } elseif ($password !== $confirm_password) {
         $error_message = "Password tidak cocok.";
     } elseif (strlen($password) < 6) {
@@ -30,14 +33,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         } else {
             // Create user - match database schema
             $hashed_password = hash_password($password);
-            $stmt = $pdo->prepare("INSERT INTO users (username, email, password, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())");
+            $stmt = $pdo->prepare("INSERT INTO users (name, email, password, role, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW())");
             
-            if ($stmt->execute([$username, $email, $hashed_password])) {
+            if ($stmt->execute([$username, $email, $hashed_password, $role])) {
                 // Auto login after registration
                 $user_id = $pdo->lastInsertId();
-                start_user_session($user_id, $username, 0);
+                start_user_session($user_id, $username, $role);
                 
-                header("Location: ../../index.php");
+                // Redirect based on role
+                if ($role === 'employer') {
+                    header("Location: ../../company-setup.php");
+                } else {
+                    header("Location: ../../index.php");
+                }
                 exit();
             } else {
                 $error_message = "Gagal membuat akun.";
@@ -65,6 +73,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             border: none;
         }
+        .role-info {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+        .role-info.active {
+            color: #0d6efd;
+        }
     </style>
 </head>
 <body>
@@ -87,6 +103,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <input type="email" name="email" class="form-control" value="<?= isset($_POST['email']) ? htmlspecialchars($_POST['email']) : '' ?>" required>
                             </div>
                             <div class="mb-3">
+                                <label for="role" class="form-label">Daftar Sebagai</label>
+                                <select name="role" id="roleSelect" class="form-select" required>
+                                    <option value="">Pilih Role</option>
+                                    <option value="jobseeker" <?= (isset($_POST['role']) && $_POST['role'] == 'jobseeker') ? 'selected' : '' ?>>Pencari Kerja</option>
+                                    <option value="employer" <?= (isset($_POST['role']) && $_POST['role'] == 'employer') ? 'selected' : '' ?>>Perusahaan / Employer</option>
+                                </select>
+                                <div id="roleInfo" class="role-info"></div>
+                            </div>
+                            <div class="mb-3">
                                 <label for="password" class="form-label">Password</label>
                                 <input type="password" name="password" class="form-control" required>
                             </div>
@@ -106,5 +131,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Role selection info
+        const roleSelect = document.getElementById('roleSelect');
+        const roleInfo = document.getElementById('roleInfo');
+        
+        const roleDescriptions = {
+            'jobseeker': 'Akun untuk mencari pekerjaan, melamar ke perusahaan, dan mengelola profil karir.',
+            'employer': 'Akun untuk perusahaan yang ingin memasang lowongan kerja dan mencari kandidat.'
+        };
+        
+        roleSelect.addEventListener('change', function() {
+            const selectedRole = this.value;
+            if (selectedRole && roleDescriptions[selectedRole]) {
+                roleInfo.textContent = roleDescriptions[selectedRole];
+                roleInfo.classList.add('active');
+            } else {
+                roleInfo.textContent = '';
+                roleInfo.classList.remove('active');
+            }
+        });
+        
+        // Show info for pre-selected role
+        if (roleSelect.value) {
+            roleSelect.dispatchEvent(new Event('change'));
+        }
+    </script>
 </body>
 </html>

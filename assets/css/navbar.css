@@ -1,0 +1,227 @@
+/* Consistent Navbar Styling */
+.navbar-custom {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 1.2rem 0 !important;
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    min-height: 80px;
+}
+
+.navbar-custom.scrolled {
+    padding: 0.8rem 0 !important;
+    min-height: 70px;
+}
+
+.navbar-custom .navbar-brand {
+    font-weight: 800;
+    font-size: 2rem;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.navbar-custom .navbar-brand:hover {
+    transform: scale(1.05);
+}
+
+.navbar-custom .navbar-nav .nav-link {
+    color: rgba(45, 55, 72, 0.8) !important;
+    font-weight: 600;
+    margin: 0 0.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    font-size: 1rem;
+    padding: 0.8rem 1rem !important;
+    border-radius: 50px;
+}
+
+.navbar-custom .navbar-nav .nav-link:hover {
+    color: #667eea !important;
+    background: rgba(102, 126, 234, 0.1);
+    transform: translateY(-2px);
+}
+
+.navbar-custom .navbar-nav .nav-link.active {
+    color: #667eea !important;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
+    font-weight: 700;
+}
+
+.navbar-custom .navbar-nav .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    width: 30px;
+    height: 3px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 2px;
+    transform: translateX(-50%);
+}
+
+.navbar-custom .navbar-nav .nav-link i {
+    margin-right: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.navbar-custom .navbar-nav .nav-link .badge {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.5rem;
+    border-radius: 50px;
+    animation: pulse 2s infinite;
+}
+
+/* Special styling for login/register buttons */
+.navbar-custom .nav-link.btn-login {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white !important;
+    margin-left: 0.5rem;
+    border-radius: 50px;
+    padding: 0.8rem 1.5rem !important;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.navbar-custom .nav-link.btn-login:hover {
+    background: linear-gradient(135deg, #5a67d8, #553c9a);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.navbar-custom .nav-link.btn-register {
+    border: 2px solid #667eea;
+    color: #667eea !important;
+    margin-left: 0.5rem;
+    border-radius: 50px;
+    padding: 0.8rem 1.5rem !important;
+    font-weight: 700;
+    background: transparent;
+}
+
+.navbar-custom .nav-link.btn-register:hover {
+    background: #667eea;
+    color: white !important;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+/* Dropdown styling */
+.navbar-custom .dropdown-menu {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(20px);
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 0.8rem;
+    margin-top: 0.5rem;
+}
+
+.navbar-custom .dropdown-item {
+    padding: 0.8rem 1rem;
+    font-weight: 600;
+    border-radius: 10px;
+    margin: 0.2rem 0;
+    transition: all 0.3s ease;
+    color: #2d3748;
+}
+
+.navbar-custom .dropdown-item:hover {
+    background: rgba(102, 126, 234, 0.1);
+    color: #667eea;
+    transform: translateX(5px);
+}
+
+.navbar-custom .dropdown-item.text-danger:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.navbar-custom .dropdown-item i {
+    width: 20px;
+    text-align: center;
+}
+
+/* Navbar toggler styling */
+.navbar-custom .navbar-toggler {
+    border: none;
+    padding: 0.5rem;
+    border-radius: 10px;
+    background: rgba(102, 126, 234, 0.1);
+}
+
+.navbar-custom .navbar-toggler:focus {
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.navbar-custom .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2833, 37, 41, 0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+    .navbar-custom {
+        padding: 1rem 0 !important;
+        min-height: 70px;
+    }
+    
+    .navbar-custom .navbar-brand {
+        font-size: 1.8rem;
+    }
+    
+    .navbar-custom .navbar-nav {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    .navbar-custom .navbar-nav .nav-link {
+        margin: 0.2rem 0;
+        padding: 0.8rem 0 !important;
+        border-radius: 10px;
+    }
+    
+    .navbar-custom .nav-link.btn-login,
+    .navbar-custom .nav-link.btn-register {
+        margin: 0.5rem 0;
+        text-align: center;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .navbar-custom .navbar-brand {
+        font-size: 1.6rem;
+    }
+}
+
+/* Animation keyframes */
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* Additional utility classes */
+.navbar-custom .nav-link.notification-link {
+    position: relative;
+}
+
+.navbar-custom .nav-link.notification-link .badge {
+    position: absolute;
+    top: 0.2rem;
+    right: 0.2rem;
+    font-size: 0.6rem;
+    padding: 0.2rem 0.4rem;
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}

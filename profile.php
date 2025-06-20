@@ -97,10 +97,10 @@ $languages = parse_languages_from_json($current_profile['languages'] ?? '');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profil Saya - HireWay</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Profil Saya - HireWay</title>    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="assets/css/navbar.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
@@ -117,20 +117,7 @@ $languages = parse_languages_from_json($current_profile['languages'] ?? '');
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-        }
-
-        .navbar {
-            background: rgba(255, 255, 255, 0.95) !important;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-        }
-
-        .navbar-brand {
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+        }        /* Navbar - Using external navbar.css */
 
         .main-content {
             background: var(--bg-primary);
@@ -234,21 +221,8 @@ $languages = parse_languages_from_json($current_profile['languages'] ?? '');
         }
     </style>
 </head>
-<body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg">
-        <div class="container">
-            <a class="navbar-brand" href="index.php">
-                <i class="fas fa-briefcase me-2"></i>HireWay
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="index.php">Beranda</a>
-                <a class="nav-link" href="jobs.php">Lowongan</a>
-                <a class="nav-link" href="applications.php">Lamaran Saya</a>
-                <a class="nav-link" href="src/auth/logout.php">Logout</a>
-            </div>
-        </div>
-    </nav>
+<body>    <!-- Navbar -->
+    <?php include 'src/includes/navbar.php'; ?>
 
     <!-- Main Content -->
     <div class="main-content">

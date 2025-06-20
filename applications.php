@@ -41,10 +41,10 @@ unset($_SESSION['success_message'], $_SESSION['error_message']);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lamaran Saya - HireWay</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Lamaran Saya - HireWay</title>    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="assets/css/navbar.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
@@ -64,20 +64,7 @@ unset($_SESSION['success_message'], $_SESSION['error_message']);
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-        }
-
-        .navbar {
-            background: rgba(255, 255, 255, 0.95) !important;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-        }
-
-        .navbar-brand {
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+        }        /* Navbar - Using external navbar.css */
 
         .main-content {
             background: var(--bg-primary);
@@ -254,9 +241,7 @@ unset($_SESSION['success_message'], $_SESSION['error_message']);
             background: var(--primary-color);
             color: white;
             transform: translateY(-2px);
-        }
-
-        .section-title {
+        }        .section-title {
             color: var(--text-primary);
             font-weight: 700;
             font-size: 2rem;
@@ -265,24 +250,133 @@ unset($_SESSION['success_message'], $_SESSION['error_message']);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+
+        /* Job Detail Modal Styling */
+        .job-detail-content {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .job-detail-content h4 {
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .job-detail-content h5 {
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .job-detail-content h6 {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .job-detail-content .d-flex {
+            margin-bottom: 0.75rem;
+        }
+
+        .job-detail-content .d-flex i {
+            width: 20px;
+            font-size: 1rem;
+        }
+
+        .job-detail-content .d-flex span {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+
+        .job-description-detail {
+            background: rgba(99, 102, 241, 0.05);
+            border-left: 4px solid var(--primary-color);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .job-requirements {
+            background: rgba(16, 185, 129, 0.05);
+            border-left: 4px solid var(--success-color);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+        }
+
+        .job-requirements ul, .job-description-detail ul,
+        .job-requirements ol, .job-description-detail ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .job-requirements li, .job-description-detail li {
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-lg {
+            max-width: 800px;
+        }
+
+        .modal-content {
+            border-radius: 1rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 1.5rem 2rem;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .badge.fs-6 {
+            font-size: 0.9rem !important;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+        }
+
+        .border-top {
+            border-color: rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .modal-dialog {
+                margin: 1rem;
+            }
+            
+            .modal-body {
+                padding: 1.5rem;
+            }
+            
+            .job-detail-content .row {
+                margin-bottom: 1rem;
+            }
+            
+            .job-detail-content .d-flex {
+                flex-direction: column;
+                align-items: flex-start !important;
+            }
+            
+            .job-detail-content .d-flex i {
+                margin-bottom: 0.25rem;
+            }
+        }
     </style>
 </head>
-<body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg">
-        <div class="container">
-            <a class="navbar-brand" href="index.php">
-                <i class="fas fa-briefcase me-2"></i>HireWay
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="index.php">Beranda</a>
-                <a class="nav-link" href="jobs.php">Lowongan</a>
-                <a class="nav-link" href="profile.php">Profil</a>
-                <a class="nav-link" href="bookmarks.php">Favorit</a>
-                <a class="nav-link" href="src/auth/logout.php">Logout</a>
-            </div>
-        </div>
-    </nav>
+<body>    <!-- Navbar -->
+    <?php include 'src/includes/navbar.php'; ?>
 
     <!-- Main Content -->
     <div class="main-content">
@@ -384,12 +478,10 @@ unset($_SESSION['success_message'], $_SESSION['error_message']);
                             <div class="application-card status-<?= $application['status'] ?>">
                                 <div class="row align-items-center">
                                     <div class="col-lg-8">
-                                        <div class="d-flex justify-content-between align-items-start mb-2">
-                                            <h5 class="mb-1">
-                                                <a href="job-detail.php?id=<?= $application['job_id'] ?>" 
-                                                   class="text-decoration-none text-dark">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">                                            <h5 class="mb-1">
+                                                <button class="btn btn-link p-0 text-decoration-none text-dark" onclick="showJobDetail(<?= $application['job_id'] ?>)">
                                                     <?= htmlspecialchars($application['title']) ?>
-                                                </a>
+                                                </button>
                                             </h5>
                                             <span class="status-badge status-<?= $application['status'] ?>">
                                                 <?= ucfirst($application['status']) ?>
@@ -433,12 +525,10 @@ unset($_SESSION['success_message'], $_SESSION['error_message']);
                                         <div class="application-date mb-2">
                                             Diperbarui: <?= date('d M Y H:i', strtotime($application['updated_at'])) ?>
                                         </div>
-                                        
-                                        <div class="d-flex justify-content-end gap-2 flex-wrap">
-                                            <a href="job-detail.php?id=<?= $application['job_id'] ?>" 
-                                               class="btn-outline-modern">
+                                          <div class="d-flex justify-content-end gap-2 flex-wrap">
+                                            <button class="btn-outline-modern" onclick="showJobDetail(<?= $application['job_id'] ?>)">
                                                 <i class="fas fa-eye me-1"></i>Lihat Lowongan
-                                            </a>
+                                            </button>
                                             
                                             <?php if ($application['status'] == 'accepted'): ?>
                                                 <span class="badge bg-success fs-6">
@@ -467,10 +557,20 @@ unset($_SESSION['success_message'], $_SESSION['error_message']);
                 </div>
             </div>
         </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </div>    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar-custom');
+            if (navbar) {
+                if (window.scrollY > 50) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            }
+        });
+
         // Show SweetAlert2 messages
         <?php if (isset($success_message)): ?>
             Swal.fire({
@@ -490,8 +590,7 @@ unset($_SESSION['success_message'], $_SESSION['error_message']);
             });
         <?php endif; ?>
 
-        // Add some interactivity
-        document.querySelectorAll('.application-card').forEach(card => {
+        // Add some interactivity        document.querySelectorAll('.application-card').forEach(card => {
             card.addEventListener('mouseenter', function() {
                 this.style.borderLeftWidth = '6px';
             });
@@ -500,6 +599,151 @@ unset($_SESSION['success_message'], $_SESSION['error_message']);
                 this.style.borderLeftWidth = '4px';
             });
         });
+
+        // Job Detail Function
+        function showJobDetail(jobId) {
+            // Show loading SweetAlert
+            Swal.fire({
+                title: 'Memuat Detail...',
+                html: 'Mohon tunggu sebentar <i class="fas fa-spinner fa-spin"></i>',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                background: '#ffffff',
+                color: '#1e293b'
+            });
+            
+            fetch(`job-detail.php?id=${jobId}`)
+                .then(response => response.json())
+                .then(data => {
+                    Swal.close();
+                    
+                    if (data.success) {
+                        const job = data.job;
+                        
+                        // Update modal title
+                        document.getElementById('jobDetailTitle').textContent = job.title || 'Detail Lowongan';
+                        
+                        // Update modal content
+                        document.getElementById('jobDetailContent').innerHTML = `
+                            <div class="job-detail-content">
+                                <div class="row mb-4">
+                                    <div class="col-md-8">
+                                        <h4 class="text-primary mb-3">${job.title || 'Tidak Ada Judul'}</h4>
+                                        <h5 class="text-secondary mb-3">
+                                            <i class="fas fa-building me-2"></i>${job.company || 'Perusahaan Tidak Diketahui'}
+                                        </h5>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <span class="badge bg-primary fs-6 px-3 py-2">
+                                            <i class="fas fa-briefcase me-1"></i>${job.job_type || 'Full-time'}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <i class="fas fa-map-marker-alt text-primary me-3"></i>
+                                            <span><strong>Lokasi:</strong> ${job.location || 'Tidak Disebutkan'}</span>
+                                        </div>
+                                        ${job.salary && job.salary.trim() !== '' ? `
+                                        <div class="d-flex align-items-center mb-3">
+                                            <i class="fas fa-money-bill-wave text-success me-3"></i>
+                                            <span><strong>Gaji:</strong> ${job.salary}</span>
+                                        </div>
+                                        ` : ''}
+                                        ${job.contact_email && job.contact_email.trim() !== '' ? `
+                                        <div class="d-flex align-items-center mb-3">
+                                            <i class="fas fa-envelope text-info me-3"></i>
+                                            <span><strong>Email:</strong> <a href="mailto:${job.contact_email}" class="text-decoration-none">${job.contact_email}</a></span>
+                                        </div>
+                                        ` : ''}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <i class="fas fa-calendar-alt text-info me-3"></i>
+                                            <span><strong>Dipublikasi:</strong> ${job.created_at || 'Tidak Diketahui'}</span>
+                                        </div>
+                                        ${job.deadline && job.deadline.trim() !== '' ? `
+                                        <div class="d-flex align-items-center mb-3">
+                                            <i class="fas fa-clock text-warning me-3"></i>
+                                            <span><strong>Batas Waktu:</strong> ${job.deadline}</span>
+                                        </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                                
+                                <hr class="my-4">
+                                
+                                <div class="mb-4">
+                                    <h6 class="text-primary mb-3">
+                                        <i class="fas fa-file-alt me-2"></i>Deskripsi Pekerjaan
+                                    </h6>
+                                    <div class="job-description-detail">
+                                        ${job.description ? job.description.replace(/\n/g, '<br>') : 'Tidak ada deskripsi yang tersedia.'}
+                                    </div>
+                                </div>
+                                
+                                ${job.requirements && job.requirements.trim() !== '' ? `
+                                <div class="mb-4">
+                                    <h6 class="text-primary mb-3">
+                                        <i class="fas fa-list-check me-2"></i>Persyaratan
+                                    </h6>
+                                    <div class="job-requirements">
+                                        ${job.requirements.replace(/\n/g, '<br>')}
+                                    </div>
+                                </div>
+                                ` : ''}
+                                
+                                <div class="d-flex justify-content-center mt-4 pt-3 border-top">
+                                    <div class="alert alert-info text-center">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        Anda sudah melamar pekerjaan ini. Status lamaran Anda dapat dilihat di halaman aplikasi.
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // Show modal
+                        const modal = new bootstrap.Modal(document.getElementById('jobDetailModal'));
+                        modal.show();
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal Memuat! 😞',
+                            text: data.message || 'Terjadi kesalahan saat memuat detail lowongan',
+                            confirmButtonText: 'OK',
+                            confirmButtonColor: '#ef4444'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.close();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal Memuat! 😞',
+                        text: 'Terjadi kesalahan saat memuat detail lowongan',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#ef4444'
+                    });
+                });
+        }
     </script>
+
+    <!-- Modal untuk detail job -->
+    <div class="modal fade" id="jobDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="jobDetailTitle">Detail Lowongan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="jobDetailContent">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

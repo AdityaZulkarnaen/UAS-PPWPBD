@@ -17,14 +17,15 @@ $offset = ($current_page - 1) * $jobs_per_page;
 $search = isset($_GET['search']) ? clean_input($_GET['search']) : '';
 $location_filter = isset($_GET['location']) ? clean_input($_GET['location']) : '';
 $job_type_filter = isset($_GET['job_type']) ? clean_input($_GET['job_type']) : '';
+$category_filter = isset($_GET['category']) ? intval($_GET['category']) : 0;
 
 // Query untuk mengambil data jobs dengan pagination
-$sql = "SELECT * FROM jobs WHERE 1=1";
-$count_sql = "SELECT COUNT(*) FROM jobs WHERE 1=1";
+$sql = "SELECT j.*, c.name as category_name FROM jobs j LEFT JOIN categories c ON j.category_id = c.id WHERE j.is_active = 1 AND j.status = 'published'";
+$count_sql = "SELECT COUNT(*) FROM jobs j WHERE j.is_active = 1 AND j.status = 'published'";
 $params = [];
 
 if (!empty($search)) {
-    $search_condition = " AND (title LIKE ? OR company LIKE ? OR description LIKE ?)";
+    $search_condition = " AND (j.title LIKE ? OR j.company LIKE ? OR j.description LIKE ?)";
     $sql .= $search_condition;
     $count_sql .= $search_condition;
     $search_param = "%$search%";
@@ -34,17 +35,24 @@ if (!empty($search)) {
 }
 
 if (!empty($location_filter)) {
-    $location_condition = " AND location LIKE ?";
+    $location_condition = " AND j.location LIKE ?";
     $sql .= $location_condition;
     $count_sql .= $location_condition;
     $params[] = "%$location_filter%";
 }
 
 if (!empty($job_type_filter)) {
-    $job_type_condition = " AND job_type = ?";
+    $job_type_condition = " AND j.job_type = ?";
     $sql .= $job_type_condition;
     $count_sql .= $job_type_condition;
     $params[] = $job_type_filter;
+}
+
+if (!empty($category_filter)) {
+    $category_condition = " AND j.category_id = ?";
+    $sql .= $category_condition;
+    $count_sql .= $category_condition;
+    $params[] = $category_filter;
 }
 
 // Get total count
@@ -56,14 +64,18 @@ $total_jobs = $count_stmt->fetchColumn();
 $total_pages = ceil($total_jobs / $jobs_per_page);
 
 // Get jobs for current page
-$sql .= " ORDER BY created_at DESC LIMIT $jobs_per_page OFFSET $offset";
+$sql .= " ORDER BY j.created_at DESC LIMIT $jobs_per_page OFFSET $offset";
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $jobs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Ambil data untuk filter
-$locations_stmt = $pdo->query("SELECT DISTINCT location FROM jobs ORDER BY location");
+$locations_stmt = $pdo->query("SELECT DISTINCT location FROM jobs WHERE location IS NOT NULL ORDER BY location");
 $locations = $locations_stmt->fetchAll(PDO::FETCH_COLUMN);
+
+// Ambil categories untuk filter
+$categories_stmt = $pdo->query("SELECT * FROM categories WHERE is_active = 1 ORDER BY name");
+$categories = $categories_stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -71,10 +83,10 @@ $locations = $locations_stmt->fetchAll(PDO::FETCH_COLUMN);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Semua Lowongan - HireWay</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Semua Lowongan - HireWay</title>    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="assets/css/navbar.css" rel="stylesheet">
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
@@ -130,66 +142,7 @@ $locations = $locations_stmt->fetchAll(PDO::FETCH_COLUMN);
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
-        }
-
-        /* Navbar dengan Glassmorphism */
-        .navbar {
-            background: rgba(255, 255, 255, 0.95) !important;
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 1rem 0;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        .navbar-brand {
-            font-weight: 700;
-            font-size: 1.8rem;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .navbar-nav .nav-link {
-            color: var(--text-secondary) !important;
-            font-weight: 500;
-            margin: 0 0.5rem;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .navbar-nav .nav-link:hover {
-            color: var(--primary-color) !important;
-            transform: translateY(-2px);
-        }
-
-        .navbar-nav .nav-link::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            bottom: -5px;
-            left: 50%;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            transition: all 0.3s ease;
-            transform: translateX(-50%);
-        }
-
-        .navbar-nav .nav-link:hover::after {
-            width: 80%;
-        }
-
-        .navbar-nav .nav-link.active {
-            color: var(--primary-color) !important;
-            font-weight: 600;
-        }
-
-        .navbar-nav .nav-link.active::after {
-            width: 80%;
-        }
+        }        /* Navbar - Using external navbar.css */
 
         /* Buttons dengan Gradient dan Animasi */
         .btn-modern {
@@ -668,66 +621,133 @@ $locations = $locations_stmt->fetchAll(PDO::FETCH_COLUMN);
             opacity: 0.7;
             pointer-events: none;
         }
+
+        /* Job Detail Modal Styling */
+        .job-detail-content {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .job-detail-content h4 {
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .job-detail-content h5 {
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .job-detail-content h6 {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .job-detail-content .d-flex {
+            margin-bottom: 0.75rem;
+        }
+
+        .job-detail-content .d-flex i {
+            width: 20px;
+            font-size: 1rem;
+        }
+
+        .job-detail-content .d-flex span {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+
+        .job-description-detail {
+            background: rgba(99, 102, 241, 0.05);
+            border-left: 4px solid var(--primary-color);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .job-requirements {
+            background: rgba(16, 185, 129, 0.05);
+            border-left: 4px solid var(--success-color);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+        }
+
+        .job-requirements ul, .job-description-detail ul,
+        .job-requirements ol, .job-description-detail ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .job-requirements li, .job-description-detail li {
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-lg {
+            max-width: 800px;
+        }
+
+        .modal-content {
+            border-radius: 1rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 1.5rem 2rem;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .badge.fs-6 {
+            font-size: 0.9rem !important;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+        }
+
+        .border-top {
+            border-color: rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .modal-dialog {
+                margin: 1rem;
+            }
+            
+            .modal-body {
+                padding: 1.5rem;
+            }
+            
+            .job-detail-content .row {
+                margin-bottom: 1rem;
+            }
+            
+            .job-detail-content .d-flex {
+                flex-direction: column;
+                align-items: flex-start !important;
+            }
+            
+            .job-detail-content .d-flex i {
+                margin-bottom: 0.25rem;
+            }
+        }
     </style>
 </head>
-<body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg">
-        <div class="container">
-            <a class="navbar-brand" href="index.php">
-                <i class="fas fa-briefcase me-2"></i>HireWay
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.php">Beranda</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="jobs.php">Semua Lowongan</a>
-                    </li>
-                    <?php if (is_logged_in()): ?>
-                        <li class="nav-item">
-                            <a class="nav-link" href="profile.php">
-                                <i class="fas fa-user me-2"></i>Profil
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="applications.php">
-                                <i class="fas fa-file-alt me-2"></i>Lamaran
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="bookmarks.php">
-                                <i class="fas fa-heart me-2"></i>Favorit
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <span class="nav-link">Halo, <?= htmlspecialchars(get_user_name()) ?>! 👋</span>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="src/auth/logout.php">
-                                <i class="fas fa-sign-out-alt me-2"></i>Logout
-                            </a>
-                        </li>
-                    <?php else: ?>
-                        <li class="nav-item">
-                            <a class="nav-link" href="src/auth/login.php">
-                                <i class="fas fa-sign-in-alt me-2"></i>Login
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="src/auth/register.php">
-                                <i class="fas fa-user-plus me-2"></i>Daftar
-                            </a>
-                        </li>
-                    <?php endif; ?>
-                </ul>
-            </div>
-        </div>
-    </nav>
+<body>    <!-- Navbar -->
+    <?php include 'src/includes/navbar.php'; ?>
 
     <!-- Page Header -->
     <section class="page-header">
@@ -747,8 +767,7 @@ $locations = $locations_stmt->fetchAll(PDO::FETCH_COLUMN);
                     <div class="col-md-3">
                         <label class="form-label fw-bold">🔍 Kata Kunci</label>
                         <input type="text" name="search" class="form-control" placeholder="Cari pekerjaan..." 
-                               value="<?= htmlspecialchars($search) ?>">
-                    </div>
+                               value="<?= htmlspecialchars($search) ?>">                    </div>
                     <div class="col-md-3">
                         <label class="form-label fw-bold">📍 Lokasi</label>
                         <select name="location" class="form-select">
@@ -761,17 +780,30 @@ $locations = $locations_stmt->fetchAll(PDO::FETCH_COLUMN);
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">🏷️ Kategori</label>
+                        <select name="category" class="form-select">
+                            <option value="">Semua Kategori</option>
+                            <?php foreach ($categories as $category): ?>
+                                <option value="<?= $category['id'] ?>" 
+                                        <?= $category_filter == $category['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($category['name']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
                         <label class="form-label fw-bold">💼 Tipe Pekerjaan</label>
                         <select name="job_type" class="form-select">
                             <option value="">Semua Tipe</option>
-                            <option value="Full-time" <?= $job_type_filter == 'Full-time' ? 'selected' : '' ?>>Full-time</option>
-                            <option value="Part-time" <?= $job_type_filter == 'Part-time' ? 'selected' : '' ?>>Part-time</option>
-                            <option value="Contract" <?= $job_type_filter == 'Contract' ? 'selected' : '' ?>>Contract</option>
-                            <option value="Internship" <?= $job_type_filter == 'Internship' ? 'selected' : '' ?>>Internship</option>
+                            <option value="full-time" <?= $job_type_filter == 'full-time' ? 'selected' : '' ?>>Full-time</option>
+                            <option value="part-time" <?= $job_type_filter == 'part-time' ? 'selected' : '' ?>>Part-time</option>
+                            <option value="contract" <?= $job_type_filter == 'contract' ? 'selected' : '' ?>>Contract</option>
+                            <option value="internship" <?= $job_type_filter == 'internship' ? 'selected' : '' ?>>Internship</option>
+                            <option value="freelance" <?= $job_type_filter == 'freelance' ? 'selected' : '' ?>>Freelance</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <button type="submit" class="btn btn-modern w-100">
                             <i class="fas fa-search me-2"></i>Cari Lowongan
                         </button>
@@ -1100,15 +1132,120 @@ $locations = $locations_stmt->fetchAll(PDO::FETCH_COLUMN);
                     color: '#1e293b'
                 });
                 
+                // Ubah URL sesuai file yang ada
                 fetch(`job-detail.php?id=${jobId}`)
-                    .then(response => response.text())
+                    .then(response => response.json())
                     .then(data => {
                         Swal.close();
-                        // Handle job detail display
-                        console.log('Job detail loaded');
+                        
+                        if (data.success) {
+                            const job = data.job;
+                            
+                            // Update modal title
+                            document.getElementById('jobDetailTitle').textContent = job.title;
+                              // Update modal content
+                            document.getElementById('jobDetailContent').innerHTML = `
+                                <div class="job-detail-content">
+                                    <div class="row mb-4">
+                                        <div class="col-md-8">
+                                            <h4 class="text-primary mb-3">${job.title || 'Tidak Ada Judul'}</h4>
+                                            <h5 class="text-secondary mb-3">
+                                                <i class="fas fa-building me-2"></i>${job.company || 'Perusahaan Tidak Diketahui'}
+                                            </h5>
+                                        </div>
+                                        <div class="col-md-4 text-end">
+                                            <span class="badge bg-primary fs-6 px-3 py-2">
+                                                <i class="fas fa-briefcase me-1"></i>${job.job_type || 'Full-time'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-4">
+                                        <div class="col-md-6">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <i class="fas fa-map-marker-alt text-primary me-3"></i>
+                                                <span><strong>Lokasi:</strong> ${job.location || 'Tidak Disebutkan'}</span>
+                                            </div>
+                                            ${job.salary && job.salary.trim() !== '' ? `
+                                            <div class="d-flex align-items-center mb-3">
+                                                <i class="fas fa-money-bill-wave text-success me-3"></i>
+                                                <span><strong>Gaji:</strong> ${job.salary}</span>
+                                            </div>
+                                            ` : ''}
+                                            ${job.contact_email && job.contact_email.trim() !== '' ? `
+                                            <div class="d-flex align-items-center mb-3">
+                                                <i class="fas fa-envelope text-info me-3"></i>
+                                                <span><strong>Email:</strong> <a href="mailto:${job.contact_email}" class="text-decoration-none">${job.contact_email}</a></span>
+                                            </div>
+                                            ` : ''}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <i class="fas fa-calendar-alt text-info me-3"></i>
+                                                <span><strong>Dipublikasi:</strong> ${job.created_at || 'Tidak Diketahui'}</span>
+                                            </div>
+                                            ${job.deadline && job.deadline.trim() !== '' ? `
+                                            <div class="d-flex align-items-center mb-3">
+                                                <i class="fas fa-clock text-warning me-3"></i>
+                                                <span><strong>Batas Waktu:</strong> ${job.deadline}</span>
+                                            </div>
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                    
+                                    <hr class="my-4">
+                                    
+                                    <div class="mb-4">
+                                        <h6 class="text-primary mb-3">
+                                            <i class="fas fa-file-alt me-2"></i>Deskripsi Pekerjaan
+                                        </h6>
+                                        <div class="job-description-detail">
+                                            ${job.description ? job.description.replace(/\n/g, '<br>') : 'Tidak ada deskripsi yang tersedia.'}
+                                        </div>
+                                    </div>
+                                    
+                                    ${job.requirements && job.requirements.trim() !== '' ? `
+                                    <div class="mb-4">
+                                        <h6 class="text-primary mb-3">
+                                            <i class="fas fa-list-check me-2"></i>Persyaratan
+                                        </h6>
+                                        <div class="job-requirements">
+                                            ${job.requirements.replace(/\n/g, '<br>')}
+                                        </div>
+                                    </div>
+                                    ` : ''}
+                                    
+                                    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                                        <div>
+                                            <button class="btn btn-outline-danger me-2" onclick="toggleBookmark(${job.id}, this)">
+                                                <i class="fas fa-heart me-2"></i>Simpan
+                                            </button>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn-success btn-lg" onclick="applyJob(${job.id}, '${job.title || 'Pekerjaan ini'}', '${job.company || 'Perusahaan ini'}')">
+                                                <i class="fas fa-paper-plane me-2"></i>Lamar Sekarang
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            // Show modal
+                            const modal = new bootstrap.Modal(document.getElementById('jobDetailModal'));
+                            modal.show();
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal Memuat! 😞',
+                                text: data.message || 'Terjadi kesalahan saat memuat detail lowongan',
+                                confirmButtonText: 'OK',
+                                confirmButtonColor: '#ef4444'
+                            });
+                        }
                     })
                     .catch(error => {
                         console.error('Error:', error);
+                        Swal.close();
                         Swal.fire({
                             icon: 'error',
                             title: 'Gagal Memuat! 😞',

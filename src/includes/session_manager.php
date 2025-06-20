@@ -27,7 +27,25 @@ function get_user_name() {
 // Function to check if user is admin
 function is_admin() {
     start_session();
-    return isset($_SESSION['user_id']) && isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1;
+    return isset($_SESSION['user_id']) && isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+}
+
+// Function to check if user is employer
+function is_employer() {
+    start_session();
+    return isset($_SESSION['user_id']) && isset($_SESSION['role']) && $_SESSION['role'] === 'employer';
+}
+
+// Function to check if user is jobseeker
+function is_jobseeker() {
+    start_session();
+    return isset($_SESSION['user_id']) && isset($_SESSION['role']) && $_SESSION['role'] === 'jobseeker';
+}
+
+// Function to get user role
+function get_user_role() {
+    start_session();
+    return $_SESSION['role'] ?? 'jobseeker';
 }
 
 // Function to destroy the session
@@ -85,11 +103,13 @@ function require_admin() {
 }
 
 // Function to start user session after login
-function start_user_session($user_id, $user_name, $is_admin = 0) {
+function start_user_session($user_id, $user_name, $role = 'jobseeker') {
     start_secure_session();
     $_SESSION['user_id'] = $user_id;
     $_SESSION['user_name'] = $user_name;
-    $_SESSION['is_admin'] = $is_admin;
+    $_SESSION['username'] = $user_name; // Untuk backward compatibility
+    $_SESSION['role'] = $role;
+    $_SESSION['is_admin'] = ($role === 'admin') ? 1 : 0; // Untuk backward compatibility
     $_SESSION['last_activity'] = time();
     regenerate_session_id();
 }

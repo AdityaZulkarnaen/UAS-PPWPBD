@@ -12,19 +12,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = clean_input($_POST['password']);
 
     // Validate user credentials
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
+    $stmt = $pdo->prepare("SELECT id, name, email, password, role, company_id FROM users WHERE email = ?");
     $stmt->execute([$email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user && verify_password($password, $user['password'])) {
-        // Successful login - use username from database
+        // Successful login - use name from database
         start_user_session(
             $user['id'], 
-            $user['username'], // Changed from 'name' to 'username' to match database schema
-            isset($user['is_admin']) ? $user['is_admin'] : 0
+            $user['name'], // Use 'name' field from database
+            $user['role'] // Use 'role' field (jobseeker, employer, admin)
         );
         
-        header("Location: ../../index.php");
+        // Redirect based on role
+        if ($user['role'] === 'employer') {
+            // Check if employer has company_id
+            if (empty($user['company_id'])) {
+                header("Location: ../../company-setup.php");
+            } else {
+                header("Location: ../../my-jobs.php");
+            }
+        } elseif ($user['role'] === 'admin') {
+            header("Location: ../../admin.php");
+        } else {
+            header("Location: ../../index.php");
+        }
         exit();
     } else {
         $error_message = "Email atau password salah.";
